@@ -2,78 +2,169 @@ import { useContext, useState } from "react";
 import { QnsData } from "../components/Home";
 import "../assets/examPaper.css";
 import Results from "./Results";
-import { createContext } from 'react';
+import { createContext } from "react";
+
+//created a context
+const ResultData = createContext();
 
 function ExamPaper() {
   //To use question data in this component the Consumer is useContext
   const allQns = useContext(QnsData);
   let questionArr = allQns.data.questions;
-    //created a context
-    const ResultData = createContext();
+
+  //Set the initial value
   let [initialValue, setInitialValue] = useState({
     index: 0,
     answer: { name: "", value: "" },
-    storgeOfAns: {},
+    validation: false,
+    showValidation: false,
   });
+  //to store answer array
   let [ansArr, setAnsArr] = useState([]);
+  //to store chebox multiple value
   let [checkboxValue, setCheckBoxValue] = useState([]);
-  let [nextPage,setNextPage] = useState(false);
-  let[newObj,setNewObj] = useState({});
+  //to show next page (used as a flag)
+  let [nextPage, setNextPage] = useState(false);
+  //to store answer as json string
+  let [allAnsObj, setAllAnsObj] = useState("");
+  //for back button to get the data
+  let [prevData, setPrevData] = useState({});
   let length = questionArr.length;
   let options = questionArr[initialValue.index].questionoption;
   const qnNo = "qn" + initialValue.index;
 
+  //to show the next question
   function nextQn(index) {
-    setAnsArr((arr) => [...arr, initialValue.answer]);
-    setInitialValue({ index: index + 1, answer: { name: "", value: "" } });
-  }
-  function previousQn(index) {
-    setInitialValue({ index: index - 1 });
+    if (initialValue.validation === true) {
+      let tempVar = checkboxValue.length > 0 ? index + 2 : index + 1;
+      let name = "qn" + tempVar;
+      if (prevData) {
+        ansArr.splice(index, 1);
+        ansArr.splice(index, 0, initialValue.answer);
+        setAnsArr((arr) => [...arr]);
+      } else {
+        setAnsArr((arr) => [...arr, initialValue.answer]);
+      }
+
+      setInitialValue({
+        index: index + 1,
+        answer:
+          checkboxValue.length > 0
+            ? { name, value: checkboxValue }
+            : { name: "", value: "" },
+        showValidation: false,
+      });
+    } else {
+      setInitialValue({
+        index: index,
+        answer: { name: "", value: "" },
+        validation: false,
+        showValidation: true,
+      });
+    }
   }
 
+  //to go back
+  function previousQn(index) {
+    const prevAns = ansArr[index - 1];
+    setInitialValue({
+      index: index - 1,
+      answer: { name: prevAns.name, value: prevAns.value },
+      validation: true,
+      showValidation: false,
+    });
+    setPrevData((previousState) => {
+      return { ...previousState, prevAns };
+    });
+  }
+
+  //to set the value of radio and textarea
   function setTheValue(e, index) {
     const { currentTarget: input } = e;
-    let name = "qn" + index;
+    let tempVar = index + 1;
+    let name = "qn" + tempVar;
     let newObj = {
       name,
       value: input.value,
     };
-    setInitialValue({ index: index, answer: newObj });
+    setInitialValue({ index: index, answer: newObj, validation: true });
   }
 
-  function setDate(e, index, type) {
-    let name = "qn" + index;
+  //to set the value of date
+  function setDate(e, index) {
+    let tempVar = index + 1;
+    let name = "qn" + tempVar;
     let newObj = {
       name,
       value: e.target.value,
     };
-    setInitialValue({ index: index, answer: newObj });
+    setInitialValue({ index: index, answer: newObj, validation: true });
   }
 
+  //to set the value of checkbox
   function setCheckBox(e, index) {
     const { currentTarget: input } = e;
-    let name = "qn" + index;
-    setCheckBoxValue((arr) => [...arr, input.value]);
-    let newObj = {
-      name,
-      value: checkboxValue,
-    };
-    setInitialValue({ index: index, answer: newObj });
+    let tempVar = index + 1;
+    let name = "qn" + tempVar;
+    let findValue = checkboxValue.find((v) => {
+      return v === input.value;
+    });
+    let findIndexVal = checkboxValue.findIndex((v) => {
+      return v === input.value;
+    });
+    if (!findValue) {
+      checkboxValue.push(input.value);
+      let newObj = {
+        name,
+        value: checkboxValue,
+      };
+      setInitialValue({ index: index, answer: newObj, validation: true });
+    } else {
+      checkboxValue.splice(findIndexVal, 1);
+      let newObj = {
+        name,
+        value: checkboxValue,
+      };
+      setInitialValue({ index: index, answer: newObj, validation: true });
+    }
   }
 
-  function submit() {
-    setAnsArr((arr) => [...arr, initialValue.answer]);
-    const newObj = JSON.stringify(ansArr);
-    setNewObj({ansStore:newObj})
-    console.log("Json", newObj);
-    setNextPage({ nextPage: true });
+  //to submit all the questions answer and nextpage
+  function submit(index) {
+    if (checkboxValue.length > 0) {
+      ansArr.push(initialValue.answer);
+      setAnsArr((arr) => [...arr]);
+      const newObj = JSON.stringify(ansArr);
+      setAllAnsObj(newObj);
+      setNextPage({ nextPage: true });
+    } else if (initialValue.validation === true) {
+      ansArr.push(initialValue.answer);
+      setAnsArr((arr) => [...arr]);
+      const newObj = JSON.stringify(ansArr);
+      setAllAnsObj(newObj);
+      setNextPage({ nextPage: true });
+    } else {
+      setInitialValue({
+        index: index,
+        answer: { name: "", value: "" },
+        showValidation: true,
+      });
+    }
+  }
+
+  //to show the prefill checkbox
+  function checkCheckedValue(value) {
+    let findValue = checkboxValue.find((v) => {
+      return v === value;
+    });
+    if (findValue) return true;
+    else return false;
   }
 
   return (
     <>
       {nextPage === false ? (
         <div className="container">
-          {console.log("Ans Storage", ansArr)}
           <div className="back-next-button-layout" id="back-btn-layout">
             {initialValue.index > 0 ? (
               <button
@@ -95,9 +186,14 @@ function ExamPaper() {
           <div className="qn-layout">
             <p>{questionArr[initialValue.index].question}</p>
             <div className="options-layout">
-              {options.map((op) => {
+              {initialValue.showValidation === true ? (
+                <p className="err-msg">Please select below answer</p>
+              ) : (
+                ""
+              )}
+              {options.map((op, index) => {
                 return (
-                  <>
+                  <div key={index}>
                     {questionArr[initialValue.index].questiontype ===
                     "Radio" ? (
                       <div className="qn-option">
@@ -136,6 +232,7 @@ function ExamPaper() {
                                 : initialValue.answer.name
                             }
                             onChange={(e) => setCheckBox(e, initialValue.index)}
+                            checked={checkCheckedValue(op.optionvalue)}
                           />
                           {op.optionvalue}
                         </span>
@@ -153,13 +250,7 @@ function ExamPaper() {
                                 ? qnNo
                                 : initialValue.answer.name
                             }
-                            onChange={(e) =>
-                              setDate(
-                                e,
-                                initialValue.index,
-                                questionArr[initialValue.index].questiontype
-                              )
-                            }
+                            onChange={(e) => setDate(e, initialValue.index)}
                           />
                           {op.optionvalue}
                         </span>
@@ -168,20 +259,24 @@ function ExamPaper() {
                     ) : (
                       ""
                     )}
-                  </>
+                  </div>
                 );
               })}
             </div>
           </div>
           <div className="back-next-button-layout" id="nxt-btn">
             {initialValue.index === length - 1 ? (
-              <button className="btn-submit" onClick={() => submit()}>
+              <button
+                className="btn-submit"
+                onClick={() => submit(initialValue.index)}
+              >
                 Submit
               </button>
             ) : (
               <button
                 className="btn-next"
                 onClick={() => nextQn(initialValue.index)}
+                disabled={initialValue.showValidation}
               >
                 Next
               </button>
@@ -189,9 +284,9 @@ function ExamPaper() {
           </div>
         </div>
       ) : (
-
-        <ResultData.Provider value={newObj}>
-            <Results />
+        //Provider used to pass the data(AnsOBJ)
+        <ResultData.Provider value={allAnsObj}>
+          <Results />
         </ResultData.Provider>
       )}
     </>
@@ -199,4 +294,5 @@ function ExamPaper() {
 }
 
 export default ExamPaper;
-export {ResultData};
+//exported the context
+export { ResultData };

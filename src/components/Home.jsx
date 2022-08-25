@@ -1,24 +1,26 @@
-import { createContext } from 'react';
+import { createContext } from "react";
 //imported json data file
-import data from '../data/qnsAndAns';
+import data from "../data/qnsAndAns";
 //To use ExamPaper we imported it
-import ExamPaper from './ExamPaper';
-import '../assets/home.css'
+import ExamPaper from "./ExamPaper";
+import "../assets/home.css";
 
 //created a context
 const QnsData = createContext();
 
 function Home() {
-    return (
-        //Provider used to pass the data(Question)
+  return (
+    //Provider used to pass the data(Question)
     <QnsData.Provider value={data}>
-        <div className='home-container'>
+      <div className="home-container">
+        {/* passed the component to show the question */}
         <ExamPaper></ExamPaper>
-        </div>
+      </div>
     </QnsData.Provider>
-     );
+  );
 }
 
 export default Home;
-//exported the context 
-export {QnsData};
+
+//exported the context
+export { QnsData };

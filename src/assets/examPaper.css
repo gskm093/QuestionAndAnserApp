@@ -48,6 +48,9 @@
   text-transform: uppercase;
   margin-right: 10px;
 }
+.err-msg {
+  color: #ff0000b8;
+}
 .btn-next:hover {
   background-color: rgb(50, 205, 50);
   transition: 0.5s;
@@ -63,19 +66,19 @@
   text-transform: uppercase;
   margin-right: 10px;
 }
-.btn-submit:hover{
-    background-color: #ff0000b8;
-    transition: 0.5s;   
+.btn-submit:hover {
+  background-color: #ff0000b8;
+  transition: 0.5s;
 }
-.qn-layout p{
-        display: flex;
-        justify-content: center;
-} 
-.qn-option{
-        border-top: 1px solid gray;
-        border-bottom: 1px solid grey;
-        padding: 5px;
+.qn-layout p {
+  display: flex;
+  justify-content: center;
 }
-.options-layout{
-    margin-top: 20px;
+.qn-option {
+  border-top: 1px solid gray;
+  border-bottom: 1px solid grey;
+  padding: 5px;
+}
+.options-layout {
+  margin-top: 20px;
 }
